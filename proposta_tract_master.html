@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proposta de Prestação de Serviços Contábeis - Tract</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Montserrat:wght@300;400;600&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'tract-dark': '#0B2447',
+                        'tract-silver': '#D3D3D3',
+                        'tract-blue': '#4B8BBE',
+                        'theme-bg': 'var(--bg-main)',
+                        'theme-card': 'var(--bg-card)',
+                        'theme-text': 'var(--text-main)',
+                        'theme-title': 'var(--text-title)',
+                        'theme-border': 'var(--border-light)',
+                    },
+                    fontFamily: {
+                        'serif': ['"Playfair Display"', 'serif'],
+                        'sans': ['"Montserrat"', 'sans-serif'],
+                        'mono': ['"Fira Code"', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root, [data-theme="dark"] {
+            --bg-main: #0f172a; --bg-card: #1e293b; --text-main: #cbd5e1; --text-title: #ffffff;
+            --border-light: rgba(255,255,255,0.05); --border-dashed: rgba(75, 139, 190, 0.4); --pill-bg: rgba(75, 139, 190, 0.15);
+        }
+        [data-theme="light"] {
+            --bg-main: #f8fafc; --bg-card: #ffffff; --text-main: #475569; --text-title: #0f172a;
+            --border-light: rgba(0,0,0,0.1); --border-dashed: rgba(75, 139, 190, 0.8); --pill-bg: rgba(75, 139, 190, 0.1);
+        }
+
+        body { font-family: 'Montserrat', sans-serif; color: var(--text-main); background-color: var(--bg-main); transition: background-color 0.3s, color 0.3s; }
+        h1, h2, h3, .font-serif { font-family: 'Playfair Display', serif; }
+        .title-highlight { color: var(--text-title); transition: color 0.3s; }
+        
+        body[data-mode="edit"] .show-in-view { display: none !important; }
+        body[data-mode="view"] .show-in-edit { display: none !important; }
+        body[data-mode="view"] #login-overlay { display: none !important; }
+        
+        .editable {
+            background-color: var(--pill-bg);
+            border: 1px dashed var(--border-dashed);
+            padding: 6px 12px;
+            border-radius: 0px; 
+            color: #4B8BBE;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            outline: none;
+            display: inline-block;
+            min-width: 60px;
+        }
+        
+        select.editable { appearance: auto; -webkit-appearance: auto; cursor: pointer; border-radius: 0px; padding-right: 24px; }
+        select.editable option { background-color: var(--bg-card); color: var(--text-main); font-weight: normal; }
+
+        input[type=number].editable::-webkit-inner-spin-button, 
+        input[type=number].editable::-webkit-outer-spin-button { opacity: 1; display: block; cursor: pointer; }
+
+        .checkbox-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+        .editable-checkbox { width: 18px; height: 18px; min-width: 18px; margin-top: 2px; cursor: pointer; accent-color: #4B8BBE; }
+        body[data-mode="view"] .checkbox-item:not(.is-checked) { display: none !important; }
+        body[data-mode="view"] .editable-checkbox { display: none; }
+        body[data-mode="view"] .checkbox-item.is-checked::before { content: '•'; color: #4B8BBE; font-weight: bold; font-size: 1.2rem; line-height: 1; margin-right: 5px; }
+
+        /* Estilos do Histórico Rico com CSS placeholder inteligente */
+        div.editable.rich-editable { display: block; border-radius: 0px; text-align: left; padding: 16px; min-height: 80px; font-weight: 400; color: var(--text-main); }
+        .rich-editable:empty:before { content: attr(data-placeholder); color: #64748b; cursor: text; font-style: italic; opacity: 0.8; }
+        
+        .editable:focus { background-color: rgba(75, 139, 190, 0.3); border: 1px solid #4B8BBE; box-shadow: 0 0 10px rgba(75, 139, 190, 0.5); color: #7dd3fc; }
+        div.editable.rich-editable:focus { color: var(--text-title); }
+        .editable[data-completed="true"] { background-color: rgba(16, 185, 129, 0.15); border-color: #10b981; color: #10b981; }
+        div.editable.rich-editable[data-completed="true"] { color: var(--text-main); }
+        
+        body[data-mode="view"] .editable { background-color: transparent !important; border: none !important; padding: 0 !important; color: var(--text-title) !important; box-shadow: none !important; }
+        body[data-mode="view"] div.editable.rich-editable { color: var(--text-main) !important; }
+
+        input.editable::-webkit-calendar-picker-indicator { filter: invert(0.5) sepia(1) saturate(5) hue-rotate(175deg); cursor: pointer; }
+
+        .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s ease-out; }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+        #progress-bar { width: 0%; transition: width 0.1s; }
+        .hover-card { transition: all 0.3s ease; }
+        .img-wrapper { position: relative; border-radius: 0.75rem; overflow: hidden; height: 100%; min-height: 250px; }
+        .img-wrapper::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to right, rgba(11, 36, 71, 0.8), rgba(11, 36, 71, 0.3)); pointer-events: none; }
+        .img-wrapper img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(30%); transition: transform 3s; }
+        .img-wrapper:hover img { transform: scale(1.05); }
+
+        .logo-upload-wrapper:hover .upload-overlay { opacity: 1; }
+        .upload-overlay { background: rgba(0,0,0,0.6); opacity: 0; transition: opacity 0.2s; border-radius: 0.5rem; }
+
+        @media print {
+            @page { margin: 20mm 15mm; size: A4 portrait; }
+            body, main, section, div, table, thead, tbody, tr, td, th { background-color: white !important; color: black !important; box-shadow: none !important; }
+            body { font-size: 10pt; }
+            #sidebar, #action-buttons, #progress-container, #header-mobile, .hide-on-print, .img-wrapper, .next-btn, #rich-toolbar { display: none !important; }
+            #main-content { margin: 0 !important; padding: 0 !important; width: 100% !important; background: white !important; overflow: visible !important; }
+            table.print-header-wrapper { width: 100%; }
+            .print-header { border-bottom: 2px solid #0B2447; padding-bottom: 5px; margin-bottom: 15px; text-align: right; font-weight: bold; color: #0B2447 !important; font-size: 12px; }
+            .print-footer { border-top: 1px solid #ccc; padding-top: 5px; margin-top: 20px; text-align: center; font-size: 9px; color: #666 !important; }
+            section { margin: 0 !important; padding: 15px 0 !important; border: none !important; break-inside: auto; }
+            .page-break-before { page-break-before: always; }
+            .print-grid-collapse { display: block !important; }
+            .print-grid-collapse > div { margin-bottom: 15px; }
+            h1, h2, h3, .title-highlight, .text-tract-blue, p, span, li, strong, .editable, body[data-mode="view"] .editable { color: black !important; }
+            h2 { border-bottom: 1px solid #0B2447 !important; padding-bottom: 3px; margin-bottom: 10px;}
+            table { page-break-inside: avoid; width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+            th, td { border: 1px solid #ccc !important; padding: 6px; text-align: left; }
+            th { background-color: #eee !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .gov-signature-box { border: 2px dashed #ccc !important; height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; background-color: white !important; page-break-inside: avoid; margin-bottom: 5px; padding-bottom: 10px; }
+        }
+    </style>
+</head>
+<body data-mode="edit" class="flex h-screen overflow-hidden relative">
+
+    <div id="login-overlay" class="fixed inset-0 bg-tract-dark z-[200] flex flex-col items-center justify-center transition-opacity duration-300">
+        <img src="marcat.png" class="h-16 mb-8 object-contain" alt="Tract Logo" onerror="this.onerror=null; this.src='https://via.placeholder.com/200x80/0B2447/FFFFFF?text=TRACT';">
+        <div class="bg-theme-card p-8 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] w-full max-w-sm text-center border border-white/10">
+            <h2 class="text-2xl font-serif text-white mb-2">Acesso Restrito</h2>
+            <p class="text-sm text-gray-400 mb-6">Insira seu usuário e senha para acessar o gerador.</p>
+            <input type="text" id="admin-username" class="w-full bg-[#0f172a] border border-white/10 rounded px-4 py-3 text-white mb-3 outline-none focus:border-tract-blue transition text-center" placeholder="Usuário">
+            <input type="password" id="admin-password" onkeydown="checkPassword(event)" class="w-full bg-[#0f172a] border border-white/10 rounded px-4 py-3 text-white mb-4 outline-none focus:border-tract-blue transition text-center tracking-widest" placeholder="••••••••">
+            <button type="button" onclick="checkPassword()" class="w-full bg-tract-blue hover:bg-blue-500 text-white font-bold py-3 rounded transition shadow-lg">Entrar no Sistema</button>
+            <p id="login-error" class="text-red-500 text-sm mt-4 hidden font-semibold bg-red-500/10 py-2 rounded">Usuário ou senha incorretos.</p>
+        </div>
+    </div>
+
+    <div id="rich-toolbar" class="fixed top-20 left-1/2 transform -translate-x-1/2 z-[100] bg-tract-dark border border-theme-border text-white rounded-full shadow-[0_10px_25px_rgba(0,0,0,0.5)] px-4 py-2 gap-2 transition-all opacity-0 pointer-events-none flex items-center">
+        <span class="text-xs text-gray-400 mr-2 uppercase tracking-wider font-semibold">Formatação:</span>
+        <button onmousedown="event.preventDefault(); document.execCommand('bold', false, null)" title="Negrito (Ctrl+B)" class="w-8 h-8 flex items-center justify-center rounded hover:bg-white/10 font-bold transition">B</button>
+        <button onmousedown="event.preventDefault(); document.execCommand('italic', false, null)" title="Itálico (Ctrl+I)" class="w-8 h-8 flex items-center justify-center rounded hover:bg-white/10 italic transition font-serif">I</button>
+        <button onmousedown="event.preventDefault(); document.execCommand('underline', false, null)" title="Sublinhado (Ctrl+U)" class="w-8 h-8 flex items-center justify-center rounded hover:bg-white/10 underline transition">U</button>
+    </div>
+
+    <div id="progress-container" class="fixed top-0 left-0 w-full h-1 bg-tract-dark/20 z-[100] hide-on-print">
+        <div id="progress-bar" class="h-full bg-tract-blue shadow-[0_0_10px_#4B8BBE]"></div>
+    </div>
+
+    <div id="header-mobile" class="lg:hidden fixed top-0 left-0 w-full bg-tract-dark text-white p-4 flex justify-between items-center z-40 border-b border-white/10">
+        <img id="tract-logo-mobile" src="marcat.png" alt="Tract" class="h-8" onerror="this.onerror=null; this.src='https://via.placeholder.com/100x40/0B2447/FFFFFF?text=TRACT';">
+        <button type="button" onclick="toggleSidebar()" class="text-white">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+    </div>
+
+    <aside id="sidebar" class="w-72 flex-shrink-0 bg-tract-dark text-white flex flex-col h-full shadow-[10px_0_30px_rgba(0,0,0,0.5)] fixed lg:static top-0 left-0 z-50 transition-transform duration-300 -translate-x-full lg:translate-x-0 pt-16 lg:pt-0">
+        <button type="button" onclick="toggleSidebar()" class="lg:hidden absolute top-4 right-4 text-gray-400 hover:text-white">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+
+        <div class="flex justify-center bg-white/5 relative group logo-upload-wrapper p-6 border-b border-white/10 hidden lg:flex">
+            <input type="file" id="tract-logo-upload" class="hidden show-in-edit" accept="image/*" onchange="previewTractLogo(event)">
+            <label for="tract-logo-upload" class="cursor-pointer flex flex-col items-center w-full">
+                <img id="tract-logo-preview" src="marcat.png" alt="Tract Contabilidade" class="max-h-16 object-contain" onerror="this.onerror=null; this.src='https://via.placeholder.com/200x80/0B2447/FFFFFF?text=TRACT';">
+                <div class="upload-overlay absolute inset-0 flex items-center justify-center text-white text-xs font-bold show-in-edit text-center p-1 backdrop-blur-sm cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
+                    Trocar Logo Tract
+                </div>
+            </label>
+        </div>
+        
+        <div class="p-6 overflow-y-auto flex-1 custom-scrollbar">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xs uppercase tracking-wider text-tract-silver/50 font-semibold">Navegação</h3>
+                <div class="flex gap-2">
+                    <button type="button" onclick="toggleTheme()" class="text-gray-400 hover:text-white transition hide-on-print" title="Alternar Tema">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <nav id="nav-menu" class="space-y-1 text-sm">
+                <a href="#capa" class="nav-link block py-2.5 px-3 rounded hover:bg-tract-blue/20 transition text-gray-300 hover:text-white" data-target="capa">Início</a>
+                <a href="#sec-1" class="nav-link block py-2.5 px-3 rounded hover:bg-tract-blue/20 transition text-gray-300 hover:text-white" data-target="sec-1">1. Histórico e Dados</a>
+                <a href="#sec-2" class="nav-link block py-2.5 px-3 rounded hover:bg-tract-blue/20 transition text-gray-300 hover:text-white" data-target="sec-2">2. Escopo do Trabalho</a>
+                <a href="#sec-4" class="nav-link block py-2.5 px-3 rounded hover:bg-tract-blue/20 transition text-gray-300 hover:text-white" data-target="sec-4">4. Metodologia</a>
+                <a href="#sec-5" class="nav-link block py-2.5 px-3 rounded hover:bg-tract-blue/20 transition text-gray-300 hover:text-white" data-target="sec-5">5. Prazos de Entrega</a>
+                <a href="#sec-7" class="nav-link block py-2.5 px-3 rounded hover:bg-tract-blue/20 transition text-gray-300 hover:text-white" data-target="sec-7">7. Equipe Profissional</a>
+                <a href="#sec-8" class="nav-link block py-2.5 px-3 rounded hover:bg-tract-blue/20 transition text-gray-300 hover:text-white" data-target="sec-8">8. Honorários</a>
+                <a href="#sec-9" class="nav-link block py-2.5 px-3 rounded hover:bg-tract-blue/20 transition text-gray-300 hover:text-white" data-target="sec-9">9. Considerações</a>
+                <a href="#validacao" class="nav-link block py-2.5 px-3 rounded bg-tract-blue/20 hover:bg-tract-blue transition font-semibold text-tract-blue hover:text-white mt-6 border border-tract-blue/30 text-center" data-target="validacao">Dados do Contrato</a>
+            </nav>
+        </div>
+        
+        <div class="p-6 border-t border-white/10 bg-black/20">
+            <p class="text-xs text-tract-silver/50 mb-2 text-center uppercase tracking-widest">Para:</p>
+            <div class="bg-white/10 p-3 rounded-lg flex justify-center border border-white/5 logo-upload-wrapper relative">
+                <input type="file" id="client-logo-upload" class="hidden show-in-edit" accept="image/*" onchange="previewLogo(event)">
+                <label for="client-logo-upload" class="cursor-pointer flex flex-col items-center justify-center w-full">
+                    <img id="client-logo-preview" src="marcac.png" alt="Logomarca do Cliente" class="max-h-12 object-contain" onerror="this.onerror=null; this.src='https://via.placeholder.com/150x50/1e293b/94a3b8?text=CLIENTE';">
+                    <div class="upload-overlay absolute inset-0 flex items-center justify-center text-white text-xs font-bold show-in-edit text-center p-1 backdrop-blur-sm cursor-pointer">
+                        Trocar Logo Cliente
+                    </div>
+                </label>
+            </div>
+        </div>
+    </aside>
+
+    <main id="main-content" class="flex-1 h-full overflow-y-auto scroll-smooth bg-theme-bg relative pt-16 lg:pt-0">
+        <div class="fixed top-0 right-0 w-[800px] h-[800px] bg-tract-blue/5 rounded-full blur-3xl pointer-events-none hide-on-print transition-all"></div>
+
+        <table class="print-header-wrapper">
+            <thead class="hidden print:table-header-group">
+                <tr><td><div class="print-header">Tract Contabilidade - Proposta Comercial de Serviços</div></td></tr>
+            </thead>
+            <tbody><tr><td>
+        
+            <div class="max-w-5xl mx-auto px-6 lg:px-10 py-10 lg:py-16" id="proposal-document">
+                
+                <!-- CAPA -->
+                <section id="capa" class="min-h-[85vh] flex flex-col justify-center pb-16 relative z-10 section-observe reveal">
+                    <div class="mb-4">
+                        <span class="px-4 py-1.5 rounded-full border border-tract-blue/30 text-tract-blue text-sm font-semibold tracking-wider uppercase bg-tract-blue/10">Proposta Comercial</span>
+                    </div>
+                    <h1 class="text-5xl md:text-6xl font-serif title-highlight mb-6 leading-tight">Prestação de <br><span class="text-tract-blue">Serviços Contábeis</span></h1>
+                    
+                    <div class="w-24 h-1 bg-tract-blue mb-10"></div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-12 print-grid-collapse">
+                        <div class="space-y-6 text-lg">
+                            <div class="bg-theme-card p-6 rounded-xl border border-theme-border shadow-lg hover-card">
+                                <p class="text-sm text-gray-500 uppercase tracking-widest mb-2">Apresentado a</p>
+                                <p class="text-xl font-serif title-highlight mb-2"><input type="text" id="v-razao-capa" class="editable block w-full bg-transparent text-white placeholder-gray-400" placeholder="Razão Social Completa" oninput="syncFields('v-razao-capa', 'v-razao')"></p>
+                                <p class="text-sm text-theme-text">A/C: <input type="text" id="v-rep-nome-capa" class="editable block w-full bg-transparent text-white placeholder-gray-400" placeholder="Nome do Responsável / Carlos" oninput="syncFields('v-rep-nome-capa', 'v-rep-nome')"></p>
+                            </div>
+                            
+                            <div class="text-theme-text">
+                                <p class="mb-3"><strong>Data:</strong> <input type="date" class="editable block text-tract-blue font-mono font-bold"></p>
+                                <p><strong>Referência:</strong> Proposta Nº <input type="text" class="editable block text-tract-blue font-mono font-bold" data-optional="true" placeholder="C0524-285"></p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-6 text-sm flex flex-col justify-end text-theme-text">
+                            <p class="bg-theme-card/50 p-5 rounded-lg border-l-4 border-tract-blue">
+                                Este documento é confidencial e elaborado especificamente para a contratante acima. É proibida qualquer divulgação de seu conteúdo sem a autorização da Tract Contabilidade.
+                            </p>
+                            <div>
+                                <p class="font-serif text-lg title-highlight">Tract Contabilidade</p>
+                                <p>Harnoel Lier L. Cardoso - Sócio</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-12 text-center lg:text-left hide-on-print">
+                        <a href="#sec-1" class="next-btn inline-flex items-center gap-2 px-6 py-3 rounded-full bg-tract-blue/10 text-tract-blue hover:bg-tract-blue hover:text-white transition-all text-sm font-semibold">Iniciar Leitura &darr;</a>
+                    </div>
+                </section>
+
+                <!-- SEÇÃO 1: Histórico -->
+                <section id="sec-1" class="py-16 page-break-before section-observe reveal">
+                    <h2 class="text-3xl font-serif title-highlight mb-8 flex items-center"><span class="text-tract-blue mr-4">1.</span> Histórico e Informações Base</h2>
+                    
+                    <div class="bg-theme-card border border-theme-border mb-8 shadow-lg hover-card relative group">
+                        <div class="editable rich-editable" contenteditable="true" data-placeholder="Insira aqui um breve histórico, o cenário atual do cliente e a motivação principal para a busca dos serviços contábeis especializados da Tract..."></div>
+                    </div>
+
+                    <div class="overflow-x-auto shadow-2xl border border-theme-border hover-card">
+                        <table class="min-w-full divide-y divide-theme-border">
+                            <thead class="bg-tract-dark/90 print-bg-dark">
+                                <tr>
+                                    <th class="py-4 pl-6 pr-3 text-left text-sm font-semibold text-white uppercase tracking-wider">Descrição dos Parâmetros</th>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider w-1/3">Dados do Cliente</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-theme-border bg-theme-card text-theme-text">
+                                <tr class="transition">
+                                    <td class="py-4 pl-6 pr-3"><div class="font-bold title-highlight">Notas fiscais recebidas de fornecedores (mês)</div></td>
+                                    <td class="px-6 py-4"><input type="number" class="editable block font-mono w-full bg-transparent text-white" placeholder="0"></td>
+                                </tr>
+                                <tr class="transition">
+                                    <td class="py-4 pl-6 pr-3"><div class="font-bold title-highlight">Notas fiscais emitidas mensalmente</div></td>
+                                    <td class="px-6 py-4"><input type="number" class="editable block font-mono w-full bg-transparent text-white" placeholder="0"></td>
+                                </tr>
+                                <tr class="transition">
+                                    <td class="py-4 pl-6 pr-3"><div class="font-bold title-highlight">Quantidade de lançamentos por mês</div></td>
+                                    <td class="px-6 py-4"><input type="number" class="editable block font-mono w-full bg-transparent text-white" placeholder="0"></td>
+                                </tr>
+                                <tr class="transition">
+                                    <td class="py-4 pl-6 pr-3"><div class="font-bold title-highlight">Quantidade de contas correntes</div></td>
+                                    <td class="px-6 py-4"><input type="number" class="editable block font-mono w-full bg-transparent text-white" placeholder="0"></td>
+                                </tr>
+                                <tr class="transition">
+                                    <td class="py-4 pl-6 pr-3"><div class="font-bold title-highlight">Sistema de Gestão Financeira Utilizado</div></td>
+                                    <td class="px-6 py-4">
+                                        <select class="editable block w-full bg-transparent text-white">
+                                            <option value="" disabled selected>Selecione...</option>
+                                            <option value="Não possui">Não possui</option>
+                                            <option value="Conta Azul">Conta Azul</option>
+                                            <option value="Omie">Omie</option>
+                                            <option value="Bling">Bling</option>
+                                            <option value="Nibo">Nibo</option>
+                                            <option value="Sieg">Sieg</option>
+                                            <option value="Domínio">Domínio</option>
+                                            <option value="Outro">Outro</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr class="transition">
+                                    <td class="py-4 pl-6 pr-3"><div class="font-bold title-highlight">Empregados e Pró-labore</div></td>
+                                    <td class="px-6 py-4"><input type="number" class="editable block font-mono w-full bg-transparent text-white" placeholder="0"></td>
+                                </tr>
+                                <tr class="transition">
+                                    <td class="py-4 pl-6 pr-3"><div class="font-bold title-highlight">Tipo de Estabelecimento</div></td>
+                                    <td class="px-6 py-4">
+                                        <select class="editable block w-full bg-transparent text-white">
+                                            <option value="" disabled selected>Selecione...</option>
+                                            <option value="Sede Própria">Sede Própria</option>
+                                            <option value="Sede Alugada">Sede Alugada</option>
+                                            <option value="Filial">Filial</option>
+                                            <option value="Escritório Virtual/Coworking">Escritório Virtual/Coworking</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr class="transition">
+                                    <td class="py-4 pl-6 pr-3"><div class="font-bold title-highlight">Forma de Constituição</div></td>
+                                    <td class="px-6 py-4">
+                                        <select id="const-select" onchange="updateTributacaoLogic()" class="editable block w-full bg-transparent text-white">
+                                            <option value="" disabled selected>Selecione...</option>
+                                            <option value="LTDA">LTDA</option>
+                                            <option value="S.A.">S.A.</option>
+                                            <option value="Empresário Individual">Empresário Individual</option>
+                                            <option value="EIRELI">EIRELI</option>
+                                            <option value="Sociedade Unipessoal (SLU)">Sociedade Unipessoal (SLU)</option>
+                                            <option value="S/S">S/S</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr class="transition">
+                                    <td class="py-4 pl-6 pr-3"><div class="font-bold title-highlight">Forma de Tributação</div></td>
+                                    <td class="px-6 py-4">
+                                        <select id="trib-select" class="editable block text-tract-blue font-bold w-full bg-transparent">
+                                            <option value="" disabled selected>Selecione o Regime</option>
+                                            <option value="Simples Nacional">Simples Nacional</option>
+                                            <option value="Lucro Presumido">Lucro Presumido</option>
+                                            <option value="Lucro Real">Lucro Real</option>
+                                            <option value="MEI">MEI</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-8 hide-on-print"><a href="#sec-2" class="next-btn text-sm text-tract-blue hover:underline">Ir para Escopo &darr;</a></div>
+                </section>
+
+                <section id="sec-2" class="py-16 page-break-before section-observe reveal">
+                    <div class="grid grid-cols-1 lg:grid-cols-5 gap-12 print-grid-collapse items-center">
+                        <div class="lg:col-span-3">
+                            <h2 class="text-3xl font-serif title-highlight mb-6 flex items-center"><span class="text-tract-blue mr-4">2.</span> Escopo do Trabalho</h2>
+                            <p class="mb-8 text-theme-text">Prestação de serviços de assessoria e consultoria contábil nos seguintes aspectos:</p>
+                            
+                            <div class="grid grid-cols-1 gap-6">
+                                <div class="bg-theme-card p-5 border border-theme-border shadow-lg border-t-2 border-t-tract-blue hover-card">
+                                    <h4 class="font-bold title-highlight mb-2">Obrigações Acessórias e Tributos</h4>
+                                    <p class="text-sm text-theme-text">Entrega para Prefeitura, Estado e União, e apuração tempestiva de tributos a partir da movimentação de <input type="month" class="editable block font-bold text-tract-blue"></p>
+                                </div>
+                                <div class="bg-theme-card p-5 border border-theme-border shadow-lg border-t-2 border-t-tract-blue hover-card">
+                                    <h4 class="font-bold title-highlight mb-4">Setor Pessoal</h4>
+                                    <div id="cb-pessoal" class="text-sm text-theme-text leading-relaxed checkbox-group">
+                                        <label class="checkbox-item"><input type="checkbox" class="editable-checkbox"> Folha de pagamento</label>
+                                        <label class="checkbox-item"><input type="checkbox" class="editable-checkbox"> INSS</label>
+                                        <label class="checkbox-item"><input type="checkbox" class="editable-checkbox"> FGTS</label>
+                                        <label class="checkbox-item"><input type="checkbox" class="editable-checkbox"> GFIP (Guia de Recolhimento do FGTS e de Informações à Previdência)</label>
+                                        <label class="checkbox-item"><input type="checkbox" class="editable-checkbox"> RAIS (Relação Anual de Informações Sociais)</label>
+                                        <label class="checkbox-item"><input type="checkbox" class="editable-checkbox"> eSocial</label>
+                                    </div>
+                                </div>
+                                <div class="bg-theme-card p-5 border border-theme-border shadow-lg border-t-2 border-t-tract-blue hover-card">
+                                    <h4 class="font-bold title-highlight mb-2">Balanços</h4>
+                                    <p class="text-sm text-theme-text">Elaboração do Balancete e Balanço Patrimonial a partir de <input type="month" class="editable block font-bold text-tract-blue"></p>
+                                </div>
+                            </div>
+
+                            <div id="sec-3" class="mt-8 bg-red-900/10 p-5 border border-red-900/30">
+                                <h3 class="text-red-500 font-bold mb-2">3. Limitação de Escopo</h3>
+                                <p class="text-sm text-theme-text">A assessoria contábil está rigorosamente limitada ao escopo acima. Trabalhos adicionais deverão ser objeto de acordo específico.</p>
+                            </div>
+                        </div>
+                        <div class="lg:col-span-2 hidden lg:block h-full">
+                            <div class="img-wrapper"><img src="https://images.unsplash.com/photo-1618044733300-9472054094ee?auto=format&fit=crop&w=800&q=80" alt="Organização"></div>
+                        </div>
+                    </div>
+                    <div class="mt-8 hide-on-print"><a href="#sec-4" class="next-btn text-sm text-tract-blue hover:underline">Ir para Metodologia &darr;</a></div>
+                </section>
+
+                <section id="sec-4" class="py-16 page-break-before section-observe reveal">
+                    <h2 class="text-3xl font-serif title-highlight mb-10 flex items-center"><span class="text-tract-blue mr-4">4.</span> Metodologia e Processos</h2>
+                    <div class="flex flex-col gap-6 print-grid-collapse">
+                        
+                        <div class="bg-theme-card p-6 border border-theme-border shadow-lg hover-card flex flex-col">
+                            <h3 class="text-lg font-bold title-highlight mb-4">a) Documentação</h3>
+                            <p class="text-sm text-theme-text mb-4">O Cliente disponibilizará à Tract Contabilidade os arquivos e documentos relacionados abaixo:</p>
+                            <div id="cb-docs" class="space-y-1 text-sm text-theme-text checkbox-group">
+                                <label class="checkbox-item"><input type="checkbox" class="editable-checkbox"> Arquivos em formato "OFX" e "OFC" emitidos pelos bancos;</label>
+                                <label class="checkbox-item"><input type="checkbox" class="editable-checkbox"> Recibos de pagamento a pessoas físicas (autônomos, RPAs, etc.);</label>
+                                <label class="checkbox-item"><input type="checkbox" class="editable-checkbox"> Extratos das aplicações financeiras;</label>
+                                <label class="checkbox-item"><input type="checkbox" class="editable-checkbox"> Recibos ou notas fiscais de venda de imobilizado, compras e vendas de mercadorias;</label>
+                                <label class="checkbox-item"><input type="checkbox" class="editable-checkbox"> Outros documentos provenientes de receitas obtidas pela empresa, ou de qualquer outro recurso financeiro que tiver recebido ou que tiver direito de receber;</label>
+                                <label class="checkbox-item"><input type="checkbox" class="editable-checkbox"> Todo o movimento financeiro ocorrido mensalmente, acompanhado de todos os comprovantes de pagamento e as suas respectivas comprovações de quitação;</label>
+                                <label class="checkbox-item"><input type="checkbox" class="editable-checkbox"> Extratos bancários, conciliados, pertinentes a contas correntes mantidas pela empresa, acompanhados da movimentação financeira ocorrida a cada mês.</label>
+                            </div>
+                        </div>
+
+                        <div class="bg-theme-card p-6 border border-theme-border shadow-lg hover-card flex flex-col">
+                            <h3 class="text-lg font-bold title-highlight mb-4">b) Informações a serem comunicadas pelo Cliente</h3>
+                            <div id="cb-obrigacoes" class="space-y-1 text-sm text-theme-text checkbox-group">
+                                <label class="checkbox-item"><input type="checkbox" class="editable-checkbox"> Ocorrência de quaisquer operações que impliquem na necessidade de registro contábil;</label>
+                                <label class="checkbox-item"><input type="checkbox" class="editable-checkbox"> Todas as alterações contratuais que vier a efetuar;</label>
+                                <label class="checkbox-item"><input type="checkbox" class="editable-checkbox"> Todos os atos e fatos contábeis que vierem a ocorrer a partir da data de início da nossa prestação de serviços, visando ao atendimento das exigências dos órgãos de fiscalização brasileiros.</label>
+                            </div>
+                        </div>
+
+                        <div class="bg-theme-card p-6 border border-theme-border shadow-lg hover-card flex flex-col">
+                            <h3 class="text-lg font-bold title-highlight mb-4">c) Outras informações operacionais</h3>
+                            <div class="space-y-4 text-sm text-theme-text text-justify">
+                                <p><strong>Protocolo e Arquivamento:</strong> Toda a documentação disponibilizada à Tract Contabilidade deve ser protocolada, em livro próprio, a ser fornecido pela Contratante. Os documentos pertinentes aos setores Fiscal, Contábil e de Pessoal, devem ser arquivados, por natureza, em arquivos apropriados e mantidos no estabelecimento da Contratante. Os documentos devem ser disponibilizados pela Contratante de forma sequencial e arquivados em pastas por assunto.</p>
+                                
+                                <p><strong>Local e Prazo de Execução:</strong> Os trabalhos abrangidos no escopo da presente proposta serão realizados no escritório da Tract Contabilidade e, eventualmente, nas dependências do cliente. 
+                                <span class="optional-block text-tract-blue"><span class="editable block rich-editable p-2 min-h-0 my-2 border-dashed border border-tract-blue/50" data-optional="true" contenteditable="true" data-placeholder="Opcional Serviço In Loco: A Tract disponibilizará profissional nas dependências da contratante. Os dias necessários serão definidos de comum acordo. (Apague para remover)"></span></span>
+                                O fechamento da contabilidade mensal, terá como prazo, a princípio, o <input type="number" min="1" max="31" class="editable block font-bold text-tract-blue w-20" placeholder="Dia"> dia do mês subsequente ao da movimentação, a depender da inexistência de pendências de responsabilidade da Contratante.</p>
+                                
+                                <p><strong>Envio, Devolução e Integração:</strong> A documentação contábil deverá ser disponibilizada mensalmente e enviada, sempre no <input type="number" min="1" max="31" class="editable block font-bold text-tract-blue w-20" placeholder="Dia"> dia útil de cada mês, e será devolvida à empresa, no prazo máximo de 30 dias após a sua disponibilização. Os documentos quitados devem ser anexados às respectivas cópias de cheque, ou a outro documento que identifique a sua forma de quitação. Os arquivos pertinentes à integração de sistemas, serão disponibilizados pela empresa no mesmo período em que forem disponibilizadas as notas fiscais para importação no sistema fiscal utilizado pela Tract Contabilidade, principalmente o Sintegra.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-8 hide-on-print"><a href="#sec-5" class="next-btn text-sm text-tract-blue hover:underline">Ir para Prazos &darr;</a></div>
+                </section>
+
+                <section class="py-16 page-break-before section-observe reveal">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 print-grid-collapse">
+                        <div class="space-y-12">
+                            <div id="sec-5" class="section-observe">
+                                <h2 class="text-2xl font-serif title-highlight mb-6 border-b border-theme-border pb-4"><span class="text-tract-blue mr-3">5.</span> Prazo para Entrega Mensal dos Trabalhos de Terceirização da Contabilidade</h2>
+                                <div class="space-y-4">
+                                    <div class="bg-theme-card p-4 border border-theme-border hover-card">
+                                        <h4 class="font-bold title-highlight mb-1 text-tract-blue">Informações Fiscais</h4>
+                                        <p class="text-sm text-theme-text">As informações fiscais deverão ser enviadas à Tract Contabilidade até o dia <input type="number" min="1" max="31" class="editable block text-tract-blue w-20" placeholder="Dia"> de cada mês, caso haja movimento financeiro.</p>
+                                    </div>
+                                    <div class="bg-theme-card p-4 border border-theme-border hover-card">
+                                        <h4 class="font-bold title-highlight mb-1 text-tract-blue">Informações Trabalhistas</h4>
+                                        <p class="text-sm text-theme-text">As informações trabalhistas deverão ser enviadas até o dia <input type="number" min="1" max="31" class="editable block text-tract-blue w-20" placeholder="Dia"> de cada mês.</p>
+                                    </div>
+                                    <div class="bg-theme-card p-4 border border-theme-border hover-card">
+                                        <h4 class="font-bold title-highlight mb-1 text-tract-blue">Relatórios Adicionais</h4>
+                                        <p class="text-sm text-theme-text">Eventuais relatórios adicionais deverão ser entregues em comum acordo entre as partes, em prazo a ser acordado.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="sec-6" class="section-observe">
+                                <h2 class="text-2xl font-serif title-highlight mb-6 border-b border-theme-border pb-4"><span class="text-tract-blue mr-3">6.</span> Início e Duração</h2>
+                                <div class="bg-theme-card p-6 border-l-4 border-l-tract-blue shadow-lg">
+                                    <p class="text-theme-text mb-3">Nosso serviço iniciará no primeiro dia útil posterior à aceitação formal desta proposta, observando que os trabalhos estão limitados aos atos e fatos contábeis ocorridos a partir de <input type="month" id="c-data-inicio" class="editable block font-bold text-tract-blue"></p>
+                                    <p class="text-theme-text text-sm opacity-80">A duração deste contrato é por <strong>prazo indeterminado</strong>, podendo ser rescindido com aviso prévio de 30 dias de antecedência.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="hidden lg:block h-full">
+                            <div class="img-wrapper"><img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=800&q=80" alt="Contrato"></div>
+                        </div>
+                    </div>
+                    <div class="mt-8 hide-on-print"><a href="#sec-7" class="next-btn text-sm text-tract-blue hover:underline">Ir para Equipe & Valores &darr;</a></div>
+                </section>
+
+                <section class="py-16 page-break-before section-observe reveal">
+                    <div id="sec-7" class="mb-16 section-observe">
+                        <h2 class="text-3xl font-serif title-highlight mb-8 flex items-center"><span class="text-tract-blue mr-4">7.</span> Equipe Profissional</h2>
+                        <div class="bg-theme-card p-8 border border-theme-border shadow-lg">
+                            <p class="text-sm text-theme-text text-justify mb-6 leading-relaxed">
+                                A Tract é formada por profissionais com grande experiência nas áreas de Assessoria e Consultoria Empresarial, Auditoria Interna, Contabilidade e Consultoria Tributária. Atualmente, o seu quadro é formado por cerca de 60 colaboradores, sendo 18 colaboradores que prestam assessoria contábil/fiscal para mais de cento e cinquenta empresas, entre elas vinte e oito com investimentos estrangeiros e cinco de capital aberto. O seguinte sócio será o responsável por este trabalho:
+                            </p>
+                            <div class="bg-tract-dark/20 p-6 border-l-4 border-tract-blue rounded-r-lg">
+                                <h3 class="text-xl font-bold title-highlight mb-3">Harnoel Lier - Sócio responsável pela Tract Contabilidade</h3>
+                                <p class="text-sm text-theme-text leading-relaxed text-justify">
+                                    Bacharel em Ciências Contábeis, com especialização em Perícia Contábil, pós-graduado em Direito Tributário. Possui mais de 25 anos de experiência em gestão de Contabilidade e Departamento de Pessoal para médias e pequenas empresas, tendo trabalhado no Grupo Góes-Cohabita e Rede Bahia. Trabalhou como responsável na área Contábil de grupos empresariais nos últimos 18 anos. Com experiência em legalização de empresas estrangeiras e emissão de visto de estrangeiro, atende mais de 20 clientes estrangeiros e é responsável pelo processamento de folhas de pagamento equivalentes a mais de 2.000 vidas.
+                                </p>
+                            </div>
+                            <p class="text-sm text-theme-text text-justify mt-6 leading-relaxed">
+                                Neste trabalho, utilizaremos nosso staff, formado por profissionais da área Contábil, que executarão os trabalhos do dia a dia, sempre supervisionados pelo sócio acima indicado.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div id="sec-8" class="section-observe">
+                        <h2 class="text-3xl font-serif title-highlight mb-8 flex items-center"><span class="text-tract-blue mr-4">8.</span> Honorários e Despesas</h2>
+                        <div class="bg-theme-card p-8 border border-theme-border shadow-lg">
+                            <p class="text-sm text-theme-text mb-6">Os nossos honorários serão cobrados com base na seguinte metodologia:<br>Os serviços de terceirização da Contabilidade foram orçados com base nas horas efetivas que serão incorridas na realização dos serviços, correspondendo a:</p>
+                            
+                            <div class="overflow-hidden shadow-xl border border-theme-border mb-8">
+                                <table class="min-w-full divide-y divide-theme-border">
+                                    <thead class="bg-tract-blue/10 print-bg-dark">
+                                        <tr>
+                                            <th class="py-4 pl-6 pr-3 text-left text-sm font-bold title-highlight uppercase">Descrição dos Serviços</th>
+                                            <th class="px-6 py-4 text-right text-sm font-bold title-highlight uppercase">Investimento (R$)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-theme-border bg-theme-bg">
+                                        <tr class="transition">
+                                            <td class="py-5 pl-6 pr-3 text-sm font-medium title-highlight">Honorários Mensais (Lucro Real Estimado)</td>
+                                            <td class="px-6 py-5 text-right text-lg font-bold text-tract-blue">R$ <input type="text" id="c-honorarios" class="editable block font-mono bg-transparent w-32 text-white" placeholder="0,00" data-mask="money"></td>
+                                        </tr>
+                                        <tr class="transition bg-black/5">
+                                            <td class="py-4 pl-6 pr-3 text-sm font-medium text-theme-text">Emissão de Certidão Negativa</td>
+                                            <td class="px-6 py-4 text-right text-sm font-bold title-highlight">R$ <input type="text" class="editable block font-mono bg-transparent w-24 text-white" placeholder="0,00" data-mask="money"> <span class="text-xs font-normal">/und</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <ul class="space-y-4 list-disc pl-5 text-sm text-theme-text text-justify marker:text-tract-blue">
+                                <li>Os nossos honorários deverão ser pagos no dia 30 (trinta) de cada mês;</li>
+                                <li>Anualmente, devido ao aumento significativo dos trabalhos para realização da duplicação da folha de pagamento, entrega das obrigações acessórias, atendimento de exigências do fisco municipal e federal, será cobrado um adicional de igual valor dos honorários mensais, vencendo em 20 de novembro de cada ano;</li>
+                                <li>Será cobrado o valor de <strong>R$ <input type="text" id="c-irpf-simp" class="editable block text-tract-blue font-mono w-24 bg-transparent" placeholder="0,00" data-mask="money"></strong> para elaboração de IRPF simplificado e de <strong>R$ <input type="text" id="c-irpf-comp" class="editable block text-tract-blue font-mono w-24 bg-transparent" placeholder="0,00" data-mask="money"></strong> para IRPF completo, desde que solicitado;</li>
+                                <li>Será cobrado o valor de <strong>R$ <input type="text" id="c-alt" class="editable block text-tract-blue font-mono w-32 bg-transparent" placeholder="0,00" data-mask="money"></strong> para o processo de alteração contratual, valor este que não inclui as taxas necessárias. Será cobrado o valor de <strong>R$ <input type="text" id="c-baixa" class="editable block text-tract-blue font-mono w-32 bg-transparent" placeholder="0,00" data-mask="money"></strong> para o processo de baixa, valor este que não inclui as taxas necessárias para baixa de empresa.</li>
+                                <li>Nos honorários acima não estão inclusos trabalhos adicionais, tais como: registro de atos em cartório, IRPF dos sócios, preenchimento de formulários do IBGE e bancos, retirada de certidões negativas que não sejam obtidas diretamente no site da RFB. Caso V.Sas. necessitem destes serviços, faremos um acordo à parte;</li>
+                                <li>Caso ocorra alteração relevante no escopo do trabalho descrito no item 2, que venha a nos proporcionar maior gasto de horas na realização dos nossos trabalhos, discutiremos com V.Sas. os motivos e, em comum acordo, faturaremos à parte;</li>
+                                <li>As despesas necessárias à execução dos serviços apresentados no escopo, tais como pedágio, estacionamento, refeições, hospedagem, passagens aéreas, despesas judiciais, xerox, quilometragem (utilizamos, como base, o valor de <strong>R$ <input type="text" class="editable block text-tract-blue font-mono w-24 bg-transparent" data-optional="true" placeholder="1,20" data-mask="money"></strong> por quilômetro, que só serão cobrados no caso de deslocamentos para localidades que fiquem a uma distância superior a 10km do nosso escritório), etc., serão reembolsadas por V.Sas. no prazo de 10 dias do faturamento. Faremos todos os esforços para que tais despesas sejam mantidas em parâmetros razoáveis e dentro de valores necessários para execução destes serviços.</li>
+                                <li>Caso o pagamento das faturas de honorários ou despesas seja feito com atraso, serão corrigidos pela taxa SELIC, acrescido de juros de 1% por mês completo, mais multa de 2%.</li>
+                                <li>As partes concordam que qualquer responsabilidade da Tract Contabilidade por danos causados na prestação dos serviços previstos neste contrato será limitada, em toda e qualquer hipótese e, independentemente da extensão do dano alegado por V.Sas., aos honorários previstos neste subitem.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="mt-8 hide-on-print"><a href="#validacao" class="next-btn text-sm text-tract-blue hover:underline">Ir para Dados do Contrato &darr;</a></div>
+                </section>
+
+                <section id="sec-9" class="py-16 page-break-before section-observe reveal">
+                    <h2 class="text-3xl font-serif title-highlight mb-6 flex items-center"><span class="text-tract-blue mr-4">9.</span> Considerações Finais</h2>
+                    <div class="bg-theme-card p-8 border border-theme-border shadow-lg">
+                        <div class="space-y-6 text-theme-text text-sm text-justify leading-relaxed">
+                            <p>
+                                A Tract Contabilidade e a Contratante comprometem-se, mutuamente, a não contratar, sem prévio e escrito consentimento expresso da outra parte, nenhum funcionário ou prestador de serviço que tenha trabalhado ou atuado para a outra signatária, na execução deste Contrato, desde o início de sua vigência e até 12 (doze) meses após o seu término. Qualquer infração ao disposto nesta cláusula implicará para a parte culpada a obrigação de indenizar a parte inocente, em montante equivalente a duas vezes o valor total do salário anual do funcionário contratado, ou equivalente a duas vezes o valor total da remuneração anual do profissional autônomo, conforme o caso.
+                            </p>
+                            <p>
+                                A Contratante, no ato da assinatura desta proposta, autoriza a Tract Contabilidade a divulgar nos seus informes publicitários a sua situação de cliente.
+                            </p>
+                            <p>
+                                Fica eleito o foro da comarca de Salvador - BA para dirimir dúvidas oriundas do presente contrato, renunciando, as partes, a qualquer outro, por mais privilegiado que seja.
+                            </p>
+                            <p>
+                                Agradecemos a oportunidade de apresentar esta proposta de serviços profissionais e, desde já colocamo-nos à disposição para prestar quaisquer esclarecimentos adicionais julgados necessários.
+                            </p>
+                            <div class="mt-8">
+                                <p>Atenciosamente,</p>
+                                <p class="font-serif text-lg title-highlight font-bold mt-2">Tract Contabilidade</p>
+                                <p>Harnoel Lier Lopes Cardoso<br>Sócio</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- DADOS PARA GERAÇÃO DO CONTRATO -->
+                <section id="validacao" class="py-16 mt-8 bg-theme-card p-6 md:p-10 border border-tract-blue/20 shadow-2xl relative overflow-hidden page-break-before section-observe reveal">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-tract-blue/5 pointer-events-none"></div>
+                    
+                    <div class="text-center mb-10 hide-on-print">
+                        <h2 class="text-4xl font-serif title-highlight mb-2">Dados para Geração do Contrato</h2>
+                        <p class="text-tract-blue uppercase tracking-widest text-sm font-semibold">Preencha com atenção (Dados Jurídicos)</p>
+                    </div>
+
+                    <div class="mb-10 bg-theme-bg p-6 border border-theme-border rounded-xl">
+                        <h3 class="font-bold text-lg mb-4 title-highlight border-b border-theme-border pb-2">1. Dados da Empresa (Contratante)</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-theme-text mb-8">
+                            <p class="md:col-span-2 flex flex-col"><strong class="title-highlight mb-1">Razão Social:</strong> <input type="text" id="v-razao" class="editable block w-full bg-transparent text-white" placeholder="Razão Social Completa" oninput="syncFields('v-razao', 'v-razao-capa')"></p>
+                            <p class="flex flex-col"><strong class="title-highlight mb-1">CNPJ:</strong> <input type="text" id="v-cnpj" class="editable block font-mono w-full bg-transparent text-white" placeholder="00.000.000/0000-00" data-mask="cnpj"></p>
+                            <p class="flex flex-col"><strong class="title-highlight mb-1">E-mail Oficial:</strong> <input type="email" id="v-email" class="editable block w-full bg-transparent text-white" placeholder="email@empresa.com.br"></p>
+                            <p class="md:col-span-2 flex flex-col"><strong class="title-highlight mb-1">Endereço Completo:</strong> <input type="text" id="v-end" class="editable block w-full bg-transparent text-white" placeholder="Logradouro, nº, Bairro, Cidade - UF"></p>
+                            <p class="flex flex-col"><strong class="title-highlight mb-1">CEP:</strong> <input type="text" id="v-cep" class="editable block font-mono w-full bg-transparent text-white" placeholder="00000-000" data-mask="cep"></p>
+                            <p class="flex flex-col"><strong class="title-highlight mb-1">Telefone:</strong> <input type="text" id="v-tel" class="editable block font-mono w-full bg-transparent text-white" placeholder="(00) 00000-0000" data-mask="phone"></p>
+                        </div>
+
+                        <h3 class="font-bold text-lg mb-4 title-highlight border-b border-theme-border pb-2">2. Representante Legal</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-theme-text">
+                            <p class="md:col-span-2 flex flex-col"><strong class="title-highlight mb-1">Nome Completo:</strong> <input type="text" id="v-rep-nome" class="editable block w-full bg-transparent text-white" placeholder="Nome Completo do Representante" oninput="syncFields('v-rep-nome', 'v-rep-nome-capa')"></p>
+                            <p class="flex flex-col"><strong class="title-highlight mb-1">CPF:</strong> <input type="text" id="v-rep-cpf" class="editable block font-mono w-full bg-transparent text-white" placeholder="000.000.000-00" data-mask="cpf"></p>
+                            <p class="flex flex-col"><strong class="title-highlight mb-1">RG:</strong> <input type="text" id="v-rep-rg" class="editable block font-mono w-full bg-transparent text-white" placeholder="Ex: 12.345.678-90"></p>
+                            <p class="flex flex-col"><strong class="title-highlight mb-1">Nacionalidade:</strong> <input type="text" id="v-rep-nac" class="editable block w-full bg-transparent text-white" placeholder="Ex: Brasileiro(a)"></p>
+                            <p class="flex flex-col"><strong class="title-highlight mb-1">Estado Civil:</strong> 
+                                <select id="v-rep-est" class="editable block bg-transparent text-white w-full">
+                                    <option value="" disabled selected>Selecione...</option>
+                                    <option value="Solteiro(a)">Solteiro(a)</option>
+                                    <option value="Casado(a)">Casado(a)</option>
+                                    <option value="Divorciado(a)">Divorciado(a)</option>
+                                    <option value="Viúvo(a)">Viúvo(a)</option>
+                                    <option value="União Estável">União Estável</option>
+                                </select>
+                            </p>
+                            <p class="flex flex-col"><strong class="title-highlight mb-1">Profissão:</strong> <input type="text" id="v-rep-prof" class="editable block w-full bg-transparent text-white" placeholder="Ex: Empresário(a)"></p>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+            </td></tr></tbody>
+            <tfoot class="hidden print:table-footer-group">
+                <tr><td>
+                    <div class="print-footer">
+                        TRACT Contabilidade | Rua Alceu Amoroso Lima, 786 - Sala 520, Ed. Tancredo Neves Trade Center, Salvador/BA | Tel: (71) 3272-4477
+                    </div>
+                </td></tr>
+            </tfoot>
+        </table>
+        
+        <footer class="mt-20 border-t border-theme-border pt-8 pb-12 text-center text-xs text-theme-text hide-on-print">
+            <p>TRACT Contabilidade | Rua Alceu Amoroso Lima, 786 - Sala 520, Ed. Tancredo Neves Trade Center, Salvador/BA</p>
+            <p class="mt-1">Tel: (71) 3272-4477 | www.tract.com.br</p>
+        </footer>
+    </main>
+
+    <!-- Botões Flutuantes -->
+    <div id="action-buttons" class="fixed bottom-6 right-6 flex flex-col items-end gap-3 z-[60]">
+        
+        <!-- Aparece apenas no HTML gerado para o cliente -->
+        <div class="show-in-view flex flex-col items-end gap-3">
+            <a href="https://wa.me/557199853493?text=Olá,%20estou%20lendo%20a%20proposta%20comercial%20e%20gostaria%20de%20tirar%20uma%20dúvida." target="_blank" class="flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#128C7E] text-white font-bold py-2 px-5 rounded-full shadow-lg transition-transform transform hover:scale-105 text-sm">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.347-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.876 1.213 3.074.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg> Falar com Sócio
+            </a>
+            <button type="button" onclick="saveContractVersion()" class="flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-400 text-tract-dark font-bold py-3 px-6 rounded-full shadow-[0_0_20px_rgba(245,158,11,0.5)] transition-all transform hover:scale-105 border border-amber-300">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg> Baixar Contrato
+            </button>
+            <button type="button" onclick="window.print()" class="flex items-center justify-center gap-2 bg-tract-blue hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-full shadow-lg transition-transform transform hover:scale-105 border border-white/20">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg> Baixar Cópia da Proposta
+            </button>
+        </div>
+
+        <div class="show-in-edit flex flex-col items-end gap-3">
+            <button type="button" id="btn-reset" onclick="triggerReset()" class="hidden flex items-center justify-center gap-2 bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded-full shadow-lg text-sm border border-red-400/30 transition-transform hover:scale-105">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg> Apagar e Recomeçar
+            </button>
+
+            <button type="button" id="btn-draft" onclick="saveDraftVersion()" class="flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded-full shadow-lg text-sm border border-slate-500/30 transition-transform hover:scale-105">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg> Salvar Rascunho
+            </button>
+
+            <button type="button" id="btn-save-client" class="flex items-center justify-center gap-2 text-white font-bold py-3 px-6 rounded-full shadow-lg transition-all transform border">
+                <!-- Conteúdo alterado via JS -->
+            </button>
+        </div>
+        
+        <button type="button" id="btn-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="opacity-0 invisible bg-tract-dark text-white p-3 rounded-full shadow-lg transition-all border border-white/20 mt-2 hover:bg-tract-blue">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
+        </button>
+    </div>
+
+    <!-- Modal Pós-Salvar -->
+    <div id="reset-modal" class="hidden fixed inset-0 bg-black/80 z-[100] flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-theme-card p-8 rounded-2xl max-w-md text-center border border-theme-border shadow-2xl transform scale-95 transition-transform">
+            <div class="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            </div>
+            <h3 class="text-2xl font-serif title-highlight mb-2">Sucesso!</h3>
+            <p class="text-theme-text mb-6">A via HTML Final foi baixada no seu computador. Abra-a para visualizar a proposta limpa e ter acesso à geração do Contrato.</p>
+            <p class="text-sm font-semibold text-tract-blue mb-4 border-t border-theme-border pt-4">Nesta tela de edição, o que você deseja fazer agora?</p>
+            <div class="flex flex-col gap-3">
+                <button type="button" onclick="handleResetChoice('keep')" class="px-6 py-2.5 rounded-full border border-theme-border text-theme-text hover:bg-white/5 transition w-full text-sm font-semibold">Manter na Tela (Continuar editando)</button>
+                <button type="button" onclick="handleResetChoice('draft_clear')" class="px-6 py-2.5 rounded-full bg-tract-blue hover:bg-blue-500 text-white font-bold transition shadow-lg w-full text-sm">Salvar Rascunho Editável e Apagar Tudo</button>
+                <button type="button" onclick="handleResetChoice('clear')" class="px-6 py-2.5 rounded-full bg-red-600 hover:bg-red-500 text-white font-bold transition shadow-lg w-full text-sm">Apenas Apagar Tudo</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sincroniza campos iguais (Ex: Nome na capa e na validação)
+        function syncFields(sourceId, targetId) {
+            const val = document.getElementById(sourceId).value;
+            document.getElementById(targetId).value = val;
+            document.getElementById(targetId).dispatchEvent(new Event('input'));
+        }
+
+        function getSafeVal(id) {
+            const el = document.getElementById(id);
+            if(!el) return '';
+            let val = el.tagName === 'INPUT' || el.tagName === 'SELECT' ? el.value : el.textContent;
+            if (el.tagName === 'INPUT') { 
+                if (el.type === 'date' && val) {
+                    const [y, m, d] = val.split('-');
+                    if(y && m && d) val = `${d}/${m}/${y}`;
+                } else if (el.type === 'month' && val) {
+                    const [y, m] = val.split('-');
+                    if(y && m) val = `${m}/${y}`;
+                }
+            }
+            return val;
+        }
+
+        function getCheckedItems(groupId) {
+            const group = document.getElementById(groupId);
+            if(!group) return '';
+            if (group.tagName === 'UL') return group.innerHTML; 
+            return Array.from(group.querySelectorAll('.checkbox-item'))
+                .filter(item => item.querySelector('.editable-checkbox').checked)
+                .map(item => '<li>' + item.textContent.trim() + '</li>')
+                .join('');
+        }
+
+        // Script de Geração do Contrato Legal
+        function saveContractVersion() {
+            const dataHoje = new Date().toLocaleDateString('pt-BR');
+            const nomeClienteDoc = getSafeVal('v-razao') || 'Cliente';
+            
+            const docsList = getCheckedItems('cb-docs');
+            const obrigacoesList = getCheckedItems('cb-obrigacoes');
+            const pessoalList = getCheckedItems('cb-pessoal');
+            
+            const contractHTML = `<!DOCTYPE html>
+            <html lang="pt-BR">
+            <head>
+                <meta charset="UTF-8">
+                <title>Contrato - ${nomeClienteDoc}</title>
+                <style>
+                    body { font-family: 'Times New Roman', Times, serif; font-size: 12pt; line-height: 1.5; color: #000; margin: 0; padding: 0; background: #eee; }
+                    .page { max-width: 800px; margin: 40px auto; padding: 60px; background: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+                    h1 { text-align: center; font-size: 14pt; font-weight: bold; margin-bottom: 40px; text-transform: uppercase; border-bottom: 2px solid #000; padding-bottom: 10px; }
+                    h2 { font-size: 12pt; font-weight: bold; margin-top: 30px; text-transform: uppercase; text-decoration: underline; }
+                    p { text-align: justify; margin-bottom: 15px; }
+                    ul { margin-bottom: 15px; text-align: justify; }
+                    li { margin-bottom: 5px; }
+                    .signature-section { margin-top: 60px; display: flex; justify-content: space-between; gap: 40px; }
+                    .signature-box { flex: 1; border-top: 1px solid #000; text-align: center; padding-top: 10px; font-size: 11pt; line-height: 1.3; }
+                    .gov-box { border: 2px dashed #999; height: 100px; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; color: #666; font-size: 10pt; background: #f9f9f9;}
+                    .btn-print { display: block; width: 200px; margin: 20px auto; padding: 10px; text-align: center; background: #0B2447; color: #fff; text-decoration: none; font-family: sans-serif; font-weight: bold; border-radius: 5px; cursor: pointer;}
+                    @media print {
+                        body { background: #fff; }
+                        .page { box-shadow: none; margin: 0; padding: 20px; width: 100%; max-width: 100%; }
+                        .btn-print { display: none; }
+                        .page-break { page-break-before: always; }
+                    }
+                </style>
+            </head>
+            <body>
+                <button class="btn-print" onclick="window.print()">Imprimir / Salvar PDF</button>
+                <div class="page">
+                    <h1>CONTRATO DE PRESTAÇÃO DE SERVIÇOS CONTÁBEIS</h1>
+                    
+                    <p><strong>CONTRATANTE:</strong> <strong>${getSafeVal('v-razao')}</strong>, pessoa jurídica de direito privado, inscrita no CNPJ sob o nº ${getSafeVal('v-cnpj')}, com sede em ${getSafeVal('v-end')}, CEP ${getSafeVal('v-cep')}, com endereço eletrônico oficial ${getSafeVal('v-email')}, neste ato representada por seu representante legal, Sr(a). <strong>${getSafeVal('v-rep-nome')}</strong>, ${getSafeVal('v-rep-nac')}, ${getSafeVal('v-rep-est')}, ${getSafeVal('v-rep-prof')}, portador(a) do RG nº ${getSafeVal('v-rep-rg')} e do CPF nº ${getSafeVal('v-rep-cpf')}.</p>
+                    
+                    <p><strong>CONTRATADA:</strong> <strong>TRACT CONTABILIDADE</strong>, pessoa jurídica de direito privado, inscrita no CNPJ sob o nº 05.482.859/0001-06, com sede na Rua Alceu Amoroso Lima, 786 - Sala 520, Ed. Tancredo Neves Trade Center, Salvador/BA, neste ato representada por seu Sócio Administrador, Sr. <strong>Harnoel Lier Lopes Cardoso</strong>, Brasileiro, Contador, Casado no Regime Comunhão Parcial de Bens, portador do registro CRC/BA nº 18.233-O-0 e do CPF nº 554.600.705-20.</p>
+                    
+                    <p>As partes acima qualificadas têm, entre si, justo e acertado o presente Contrato de Prestação de Serviços Contábeis, que se regerá pela legislação aplicável, pelas normas do Conselho Federal de Contabilidade (CFC), e pelas cláusulas e condições a seguir descritas.</p>
+
+                    <h2>CLÁUSULA PRIMEIRA - DO OBJETO</h2>
+                    <p>1.1. O presente contrato tem por objeto a prestação de serviços de assessoria e consultoria contábil pela CONTRATADA à CONTRATANTE, limitando-se estritamente ao escopo validado, abrangendo:</p>
+                    <ul>
+                        <li>Entrega de Obrigações Acessórias e apuração tempestiva de tributos para as esferas Municipal, Estadual e Federal;</li>
+                        <li>Elaboração do Balancete e Balanço Patrimonial;</li>
+                        ${pessoalList ? '<li>Setor Pessoal, gerindo as rotinas pertinentes: <ul style="margin-top:5px; margin-bottom:5px;">' + pessoalList + '</ul></li>' : ''}
+                    </ul>
+                    <p>1.2. O escopo foca-se nos atos e fatos contábeis ocorridos a partir de ${getSafeVal('c-data-inicio')}.</p>
+                    <p>1.3. A assessoria contábil está rigorosamente limitada ao escopo pactuado. Trabalhos adicionais deverão ser objeto de acordo e faturamento específicos.</p>
+
+                    <h2>CLÁUSULA SEGUNDA - DAS OBRIGAÇÕES DA CONTRATANTE</h2>
+                    <p>2.1. A CONTRATANTE obriga-se a disponibilizar à CONTRATADA todos os arquivos e documentos exigidos para a execução dos trabalhos, notadamente: ${docsList ? '<br><ul style="margin-top:5px; margin-bottom:5px;">' + docsList + '</ul>' : 'todos os documentos contábeis e fiscais pertinentes.'}</p>
+                    <p>2.2. A CONTRATANTE compromete-se a comunicar: ${obrigacoesList ? '<br><ul style="margin-top:5px; margin-bottom:5px;">' + obrigacoesList + '</ul>' : 'toda e qualquer alteração estatutária ou operação financeira relevante.'}</p>
+                    <p>2.3. A documentação contábil deverá ser enviada mensalmente à CONTRATADA, sempre nos prazos definidos no escopo, sendo devolvida após o processamento.</p>
+                    <p>2.4. É de inteira responsabilidade da CONTRATANTE a veracidade e idoneidade de todos os documentos e informações fornecidos, isentando a CONTRATADA de qualquer responsabilidade por fraudes, sonegações ou omissões provocadas pela CONTRATANTE perante o fisco e terceiros.</p>
+
+                    <h2>CLÁUSULA TERCEIRA - DAS OBRIGAÇÕES DA CONTRATADA</h2>
+                    <p>3.1. A CONTRATADA compromete-se a executar os serviços pautando-se pelas Normas Brasileiras de Contabilidade e legislação vigente, com máximo zelo e sigilo profissional.</p>
+                    <p>3.2. A CONTRATADA é responsável pelas informações enviadas aos órgãos governamentais apenas na exata medida da documentação comprobatória que lhe for entregue, tempestiva e idoneamente, pela CONTRATANTE.</p>
+
+                    <h2>CLÁUSULA QUARTA - DOS HONORÁRIOS E DESPESAS</h2>
+                    <p>4.1. Pelos serviços prestados de forma contínua, a CONTRATANTE pagará à CONTRATADA o valor mensal de <strong>R$ ${getSafeVal('c-honorarios')}</strong>, com vencimento sempre no dia 30 (trinta) de cada mês vigente.</p>
+                    <p>4.2. Anualmente, devido ao aumento significativo dos trabalhos para realização da duplicação da folha de pagamento, entrega das obrigações acessórias anuais e atendimento de exigências do fisco, será cobrado um adicional equivalente a 01 (uma) mensalidade, vencendo em 20 de novembro de cada ano.</p>
+                    <p>4.3. Eventuais serviços extraordinários solicitados pela CONTRATANTE serão cobrados conforme os valores acordados, sendo: IRPF Simplificado R$ ${getSafeVal('c-irpf-simp')}; IRPF Completo R$ ${getSafeVal('c-irpf-comp')}; Alteração Contratual R$ ${getSafeVal('c-alt')}; e Baixa de Empresa R$ ${getSafeVal('c-baixa')} (todos isentos das taxas de órgãos públicos).</p>
+                    <p>4.4. O atraso no pagamento das faturas de honorários acarretará em correção pela taxa SELIC vigente, acréscimo de juros de mora de 1% (um por cento) ao mês, além de multa penal irredutível de 2% (dois por cento) sobre o montante devido.</p>
+
+                    <h2>CLÁUSULA QUINTA - DA CONFIDENCIALIDADE E DA LGPD</h2>
+                    <p>5.1. A CONTRATADA obriga-se a manter sob absoluto sigilo e restrição de acesso todas as informações financeiras, estratégicas e de negócios da CONTRATANTE, em estrita conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018 - LGPD).</p>
+                    <p>5.2. A CONTRATANTE, de forma livre e inequívoca, autoriza a CONTRATADA a realizar o tratamento de dados pessoais estritamente necessários ao cumprimento de obrigações legais, fiscais e regulatórias (conforme art. 7º, inciso II, da LGPD).</p>
+                    
+                    <h2>CLÁUSULA SEXTA - NÃO ALICIAMENTO E LIMITAÇÃO DE RESPONSABILIDADE</h2>
+                    <p>6.1. As partes comprometem-se, mutuamente, a não contratar ou aliciar, sem prévio e escrito consentimento da outra parte, nenhum funcionário, celetista ou prestador de serviço que tenha atuado na execução deste contrato. Esta obrigação perdurará durante toda a vigência contratual e por 12 (doze) meses após seu término. Qualquer infração implicará na obrigação de indenizar a parte inocente em montante equivalente a 02 (duas) vezes o valor total da remuneração anual do profissional aliciado.</p>
+                    <p>6.2. As partes concordam que qualquer responsabilidade da CONTRATADA por eventuais falhas ou danos comprovadamente causados na prestação dos serviços será limitada, em toda e qualquer hipótese, ao valor da remuneração mensal prevista na Cláusula Quarta.</p>
+
+                    <h2>CLÁUSULA SÉTIMA - DA VIGÊNCIA E RESCISÃO</h2>
+                    <p>7.1. O presente contrato vigorará por prazo indeterminado, a contar de sua assinatura.</p>
+                    <p>7.2. Qualquer das partes poderá rescindir o presente instrumento, de forma imotivada, mediante notificação expressa e por escrito com antecedência mínima de 30 (trinta) dias.</p>
+
+                    <h2>CLÁUSULA OITAVA - DO FORO E ENCERRAMENTO</h2>
+                    <p>8.1. Fica eleito o foro da Comarca de Salvador, Estado da Bahia, com renúncia expressa a qualquer outro, por mais privilegiado e especial que seja, para dirimir quaisquer litígios oriundos deste contrato.</p>
+
+                    <p style="margin-top: 40px; text-align: center;">E, por estarem justas e contratadas, assinam o presente Contrato, física ou eletronicamente (conforme MP nº 2.200-2/2001 e Decreto nº 10.543/2020), para que produza seus regulares efeitos jurídicos.</p>
+                    
+                    <p style="text-align: center;">Salvador/BA, ${dataHoje}.</p>
+
+                    <div class="signature-section" style="page-break-inside: avoid;">
+                        <div class="signature-box">
+                            <div class="gov-box">Assinatura Física ou Digital (Gov.br)</div>
+                            <strong>${getSafeVal('v-rep-nome')}</strong><br>
+                            ${getSafeVal('v-razao')}<br>
+                            CONTRATANTE
+                        </div>
+                        <div class="signature-box">
+                            <div class="gov-box">Assinatura Física ou Digital (Gov.br)</div>
+                            <strong>Harnoel Lier L. Cardoso</strong><br>
+                            TRACT CONTABILIDADE<br>
+                            CONTRATADA
+                        </div>
+                    </div>
+                </div>
+            </body>
+            </html>`;
+
+            const blob = new Blob([contractHTML], { type: 'text/html;charset=utf-8' });
+            const url = window.URL.createObjectURL(blob);
+            
+            let docName = "Contrato_Prestacao_Servicos_Tract";
+            if(getSafeVal('v-razao')) docName += "_" + getSafeVal('v-razao').replace(/[^a-zA-Z0-9-]/g, '');
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = docName + '.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Sistema de Login Múltiplo
+        function checkPassword(e) {
+            if (e && e.key && e.key !== 'Enter') return;
+            
+            const user = document.getElementById('admin-username').value.trim();
+            const pwd = document.getElementById('admin-password').value;
+            
+            const validUsers = {
+                'usuario1': 'tract2024',
+                'usuario2': 'tract2025',
+                'usuario3': 'tract2026'
+            };
+
+            if(validUsers[user] && validUsers[user] === pwd) {
+                document.getElementById('login-overlay').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('login-overlay').remove();
+                    document.body.classList.remove('overflow-hidden');
+                }, 300);
+            } else {
+                const err = document.getElementById('login-error');
+                err.classList.remove('hidden');
+            }
+        }
+
+        let editables = [];
+        let saveBtn;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            editables = Array.from(document.querySelectorAll('.editable:not(.editable-checkbox)'));
+            saveBtn = document.getElementById('btn-save-client');
+
+            // Mantem o placeholder com segurança
+            editables.forEach(el => {
+                if(!el.hasAttribute('data-placeholder')) {
+                    if (el.tagName === 'INPUT' || el.tagName === 'SELECT') {
+                        el.setAttribute('data-placeholder', el.getAttribute('placeholder') || '');
+                    } else {
+                        el.setAttribute('data-placeholder', el.textContent.trim());
+                    }
+                }
+            });
+
+            // Lógica de Máscaras
+            document.addEventListener('input', function (e) {
+                if (e.target.matches('[data-mask="cpf"]')) {
+                    let v = e.target.value.replace(/\D/g, "");
+                    v = v.replace(/(\d{3})(\d)/, "$1.$2");
+                    v = v.replace(/(\d{3})(\d)/, "$1.$2");
+                    v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+                    e.target.value = v;
+                    e.target.dispatchEvent(new Event('change'));
+                } else if (e.target.matches('[data-mask="cnpj"]')) {
+                    let v = e.target.value.replace(/\D/g, "");
+                    v = v.replace(/^(\d{2})(\d)/, "$1.$2");
+                    v = v.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
+                    v = v.replace(/\.(\d{3})(\d)/, ".$1/$2");
+                    v = v.replace(/(\d{4})(\d{1,2})$/, "$1-$2");
+                    e.target.value = v;
+                    e.target.dispatchEvent(new Event('change'));
+                } else if (e.target.matches('[data-mask="money"]')) {
+                    let v = e.target.value.replace(/\D/g, "");
+                    if(v === "") { e.target.value = ""; }
+                    else {
+                        v = (parseInt(v, 10) / 100).toFixed(2);
+                        v = v.replace(".", ",");
+                        v = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
+                        e.target.value = v;
+                    }
+                    e.target.dispatchEvent(new Event('change'));
+                } else if (e.target.matches('[data-mask="cep"]')) {
+                    let v = e.target.value.replace(/\D/g, "");
+                    v = v.replace(/^(\d{5})(\d)/, "$1-$2");
+                    e.target.value = v;
+                    e.target.dispatchEvent(new Event('change'));
+                } else if (e.target.matches('[data-mask="phone"]')) {
+                    let v = e.target.value.replace(/\D/g, "");
+                    v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
+                    v = v.replace(/(\d)(\d{4})$/, "$1-$2");
+                    e.target.value = v;
+                    e.target.dispatchEvent(new Event('change'));
+                }
+            });
+
+            // Rich Text Toolbar
+            const richToolbar = document.getElementById('rich-toolbar');
+            document.addEventListener('selectionchange', () => {
+                const selection = window.getSelection();
+                if (selection.rangeCount > 0) {
+                    let node = selection.anchorNode;
+                    let isRich = false;
+                    if (node) {
+                        let el = node.nodeType === 3 ? node.parentElement : node;
+                        if (el && el.closest('.rich-editable')) {
+                            isRich = true;
+                        }
+                    }
+                    
+                    if (isRich && document.body.getAttribute('data-mode') === 'edit') {
+                        richToolbar.classList.remove('opacity-0', 'pointer-events-none');
+                        return;
+                    }
+                }
+                richToolbar.classList.add('opacity-0', 'pointer-events-none');
+            });
+
+            if(document.body.getAttribute('data-mode') === 'edit') {
+                editables.forEach((el, index) => {
+                    if(isValid(el)) {
+                        el.dataset.completed = "true";
+                        el.classList.add('!border-emerald-500', '!text-emerald-500', '!bg-emerald-500/10');
+                    } else {
+                        el.dataset.completed = "false";
+                    }
+
+                    const validateAndUpdate = () => {
+                        if(isValid(el)) {
+                            el.dataset.completed = "true";
+                            el.classList.add('!border-emerald-500', '!text-emerald-500', '!bg-emerald-500/10');
+                        } else {
+                            el.dataset.completed = "false";
+                            el.classList.remove('!border-emerald-500', '!text-emerald-500', '!bg-emerald-500/10');
+                        }
+                        updateFlow();
+                    };
+
+                    el.addEventListener('change', validateAndUpdate);
+                    
+                    el.addEventListener('blur', () => {
+                        if ((el.tagName === 'SPAN' || el.tagName === 'DIV') && el.textContent.trim() === '') {
+                            el.textContent = el.getAttribute('data-placeholder');
+                        }
+                        el.classList.remove('ring-2', 'ring-tract-blue', 'scale-110');
+                        validateAndUpdate();
+                    });
+
+                    el.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            if(el.classList.contains('rich-editable')) return; // Permite pular de linha no campo de histórico
+
+                            e.preventDefault(); 
+                            if(!isValid(el)) {
+                                alert('Por favor, preencha este campo obrigatório antes de avançar.');
+                                return;
+                            }
+
+                            validateAndUpdate();
+                            el.classList.remove('ring-2', 'ring-tract-blue', 'scale-110');
+
+                            if (index < editables.length - 1) {
+                                const nextEl = editables[index + 1];
+                                nextEl.focus();
+                                nextEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                if (nextEl.dataset.completed === "false") {
+                                    nextEl.classList.add('ring-2', 'ring-tract-blue', 'scale-110');
+                                }
+                            } else {
+                                if (saveBtn.innerHTML.includes('Salvar') || saveBtn.innerHTML.includes('Gerar')) {
+                                    setTimeout(() => saveBtn.focus(), 100);
+                                } else {
+                                    saveBtn.click();
+                                }
+                            }
+                        }
+                    });
+
+                    el.addEventListener('focus', () => {
+                        if ((el.tagName === 'SPAN' || el.tagName === 'DIV') && el.textContent.trim() === el.getAttribute('data-placeholder').trim()) {
+                            el.textContent = '';
+                        }
+                        editables.forEach(f => f.classList.remove('ring-2', 'ring-tract-blue', 'scale-110'));
+                        el.classList.add('ring-2', 'ring-tract-blue', 'scale-110');
+                    });
+                });
+                
+                updateFlow();
+                
+                setTimeout(() => {
+                    if(editables.length > 0 && document.getElementById('login-overlay') == null) {
+                        editables[0].focus();
+                        editables[0].classList.add('ring-2', 'ring-tract-blue', 'scale-110');
+                    }
+                }, 1000);
+            }
+        });
+
+        function previewLogo(event) {
+            const file = event.target.files[0];
+            if(file) {
+                const reader = new FileReader();
+                reader.onload = function(e) { document.getElementById('client-logo-preview').src = e.target.result; }
+                reader.readAsDataURL(file);
+            }
+        }
+        function previewTractLogo(event) {
+            const file = event.target.files[0];
+            if(file) {
+                const reader = new FileReader();
+                reader.onload = function(e) { 
+                    document.getElementById('tract-logo-preview').src = e.target.result; 
+                    const mobileLogo = document.getElementById('tract-logo-mobile');
+                    if(mobileLogo) mobileLogo.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function updateTributacaoLogic() {
+            const constVal = document.getElementById('const-select').value;
+            const tribSel = document.getElementById('trib-select');
+            
+            Array.from(tribSel.options).forEach(opt => {
+                opt.disabled = false;
+                opt.style.display = 'block';
+            });
+
+            if (constVal === 'S.A.') {
+                Array.from(tribSel.options).forEach(opt => {
+                    if(opt.value === 'Simples Nacional' || opt.value === 'MEI') {
+                        opt.disabled = true;
+                        opt.style.display = 'none';
+                    }
+                });
+                if(tribSel.value === 'Simples Nacional' || tribSel.value === 'MEI') tribSel.value = '';
+            }
+        }
+
+        function isValid(el) {
+            let val = el.tagName === 'INPUT' || el.tagName === 'SELECT' ? el.value : el.textContent;
+            val = val ? val.trim() : '';
+            let ph = el.getAttribute('data-placeholder') ? el.getAttribute('data-placeholder').trim() : '';
+            
+            if (el.dataset.optional === "true") return true; 
+            if (el.tagName === 'INPUT' || el.tagName === 'SELECT') return val !== '';
+            return val !== '' && val !== ph;
+        }
+
+        function updateFlow() {
+            if(!saveBtn) return;
+            let filled = 0;
+            editables.forEach(el => { if(isValid(el)) filled++; });
+
+            if(filled === editables.length) {
+                saveBtn.onclick = saveClientVersion;
+                saveBtn.className = "show-in-edit flex items-center justify-center gap-2 text-white font-bold py-3 px-6 rounded-full shadow-[0_0_20px_rgba(16,185,129,0.5)] transition-all transform bg-emerald-600 hover:bg-emerald-500 hover:scale-105 border border-emerald-400";
+                saveBtn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg> Gerar HTML Final`;
+            } else {
+                saveBtn.onclick = scrollToFirstMissing;
+                saveBtn.className = "show-in-edit flex items-center justify-center gap-2 font-bold py-3 px-6 rounded-full transition-all border bg-gray-600 cursor-pointer opacity-90 hover:bg-gray-500 hover:scale-105 border-gray-500 text-white";
+                saveBtn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg> Faltam campos (${editables.length - filled})`;
+            }
+        }
+
+        function scrollToFirstMissing() {
+            const firstEmpty = editables.find(e => !isValid(e));
+            if(firstEmpty) {
+                firstEmpty.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstEmpty.focus();
+                firstEmpty.classList.add('ring-4', 'ring-red-500', 'animate-pulse');
+                setTimeout(() => firstEmpty.classList.remove('ring-4', 'ring-red-500', 'animate-pulse'), 1500);
+            }
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            html.setAttribute('data-theme', html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+        }
+
+        const sidebar = document.getElementById('sidebar');
+        function toggleSidebar() { sidebar.classList.toggle('-translate-x-full'); }
+
+        const mainContent = document.getElementById('main-content');
+        mainContent.addEventListener('scroll', () => {
+            const winScroll = mainContent.scrollTop;
+            const height = mainContent.scrollHeight - mainContent.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('progress-bar').style.width = scrolled + '%';
+            const btnTop = document.getElementById('btn-top');
+            if (winScroll > 300) btnTop.classList.remove('opacity-0', 'invisible');
+            else btnTop.classList.add('opacity-0', 'invisible');
+        });
+
+        const revealElements = document.querySelectorAll('.reveal');
+        const sections = document.querySelectorAll('.section-observe');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const observerOptions = { root: mainContent, threshold: 0.15 };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    const id = entry.target.getAttribute('id');
+                    if(id) {
+                        navLinks.forEach(link => {
+                            link.classList.remove('bg-tract-blue/20', 'text-white', 'border-l-4', 'border-tract-blue');
+                            if(link.getAttribute('data-target') === id) link.classList.add('bg-tract-blue/20', 'text-white', 'border-l-4', 'border-tract-blue');
+                        });
+                    }
+                }
+            });
+        }, observerOptions);
+
+        sections.forEach(sec => observer.observe(sec));
+        revealElements.forEach(el => observer.observe(el));
+
+        navLinks.forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetSec = document.getElementById(this.getAttribute('data-target'));
+                targetSec.scrollIntoView({ behavior: 'smooth' });
+                if(window.innerWidth < 1024) sidebar.classList.add('-translate-x-full');
+            });
+        });
+        document.querySelectorAll('.next-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+
+        function bakeImages(htmlClone) {
+            const originalImages = document.querySelectorAll('img');
+            const cloneImages = htmlClone.querySelectorAll('img');
+            for(let i = 0; i < originalImages.length; i++) {
+                let orig = originalImages[i];
+                let clone = cloneImages[i];
+                if(!clone) continue; // Segurança extra caso a imagem tenha sido removida do DOM
+                if(orig.src && !orig.src.startsWith('data:') && !orig.src.startsWith('http')) {
+                    try {
+                        let canvas = document.createElement('canvas');
+                        canvas.width = orig.naturalWidth || orig.width || 100;
+                        canvas.height = orig.naturalHeight || orig.height || 100;
+                        let ctx = canvas.getContext('2d');
+                        ctx.drawImage(orig, 0, 0, canvas.width, canvas.height);
+                        clone.src = canvas.toDataURL('image/png');
+                    } catch(e) {
+                        console.warn('CORS impediu conversão Base64.');
+                    }
+                }
+            }
+        }
+
+        // Função Master para Geração da Proposta
+        function saveClientVersion() {
+            try {
+                const htmlClone = document.documentElement.cloneNode(true);
+                bakeImages(htmlClone); // Chamada movida para o início para evitar conflitos de índices na DOM
+                
+                const body = htmlClone.querySelector('body');
+                body.setAttribute('data-mode', 'view');
+                
+                // Sincronizar Valores dos Inputs
+                const originalInputs = document.querySelectorAll('input, select');
+                const clonedInputs = htmlClone.querySelectorAll('input, select');
+                originalInputs.forEach((orig, index) => {
+                    let clone = clonedInputs[index];
+                    if (clone) {
+                        if (orig.type === 'checkbox') {
+                            clone.checked = orig.checked;
+                            if (orig.checked) clone.setAttribute('checked', 'checked');
+                            else clone.removeAttribute('checked');
+                        } else if (orig.tagName === 'SELECT') {
+                            clone.value = orig.value;
+                            Array.from(clone.options).forEach(opt => {
+                                if(opt.value === orig.value) opt.setAttribute('selected', 'selected');
+                                else opt.removeAttribute('selected');
+                            });
+                            clone.setAttribute('value', orig.value);
+                        } else {
+                            clone.value = orig.value;
+                            clone.setAttribute('value', orig.value);
+                        }
+                    }
+                });
+
+                const loginOverlay = htmlClone.querySelector('#login-overlay');
+                if(loginOverlay) loginOverlay.remove();
+                body.classList.remove('overflow-hidden');
+
+                // Checkboxes to Bullets
+                htmlClone.querySelectorAll('.checkbox-group').forEach(group => {
+                    const ul = document.createElement('ul');
+                    ul.className = 'list-disc pl-5 space-y-2 text-sm text-theme-text marker:text-tract-blue mt-2';
+                    if(group.id) ul.id = group.id;
+                    
+                    let hasChecked = false;
+                    group.querySelectorAll('.checkbox-item').forEach(item => {
+                        const cb = item.querySelector('.editable-checkbox');
+                        if (cb && cb.checked) {
+                            hasChecked = true;
+                            const li = document.createElement('li');
+                            let content = item.innerHTML.replace(/<input[^>]*>/, '').trim();
+                            li.innerHTML = content;
+                            ul.appendChild(li);
+                        }
+                    });
+                    
+                    if (hasChecked) {
+                        group.parentNode.replaceChild(ul, group);
+                    } else {
+                        group.remove(); 
+                    }
+                });
+
+                // Campo Opcional
+                htmlClone.querySelectorAll('.optional-block').forEach(opt => {
+                    const editableInside = opt.querySelector('.editable');
+                    if (editableInside && editableInside.textContent.trim() === '') {
+                        opt.remove(); 
+                    } else {
+                        let cloneEditable = opt.querySelector('.editable');
+                        if(cloneEditable) cloneEditable.removeAttribute('contenteditable');
+                    }
+                });
+
+                // Input to Text
+                const clonedEditables = htmlClone.querySelectorAll('.editable:not(.editable-checkbox)');
+                clonedEditables.forEach(field => {
+                    field.removeAttribute('contenteditable');
+
+                    if (field.tagName === 'INPUT' || field.tagName === 'SELECT') {
+                        const span = document.createElement('span');
+                        span.className = field.className;
+                        if(field.id) span.id = field.id;
+                        
+                        let val = field.getAttribute('value') || field.value || field.getAttribute('placeholder') || '';
+                        if (field.type === 'date' && val) {
+                            const [y, m, d] = val.split('-');
+                            if(y && m && d) val = `${d}/${m}/${y}`;
+                        } else if (field.type === 'month' && val) {
+                            const [y, m] = val.split('-');
+                            if(y && m) val = `${m}/${y}`;
+                        }
+                        span.textContent = val;
+                        field.parentNode.replaceChild(span, field);
+                    }
+                });
+
+                const modal = htmlClone.querySelector('#reset-modal');
+                if(modal) modal.remove();
+
+                const htmlString = "<!DOCTYPE html>\n" + htmlClone.outerHTML;
+                const blob = new Blob([htmlString], { type: 'text/html;charset=utf-8' });
+                const url = window.URL.createObjectURL(blob);
+                
+                let proposalId = "Proposta_Tract";
+                try {
+                    const idField = document.getElementById('v-razao-capa');
+                    if(idField && idField.value) {
+                        proposalId += "_" + idField.value.replace(/[^a-zA-Z0-9-]/g, '');
+                    }
+                } catch(e) {}
+
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = proposalId + '.html';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+
+                setTimeout(() => {
+                    const rmodal = document.getElementById('reset-modal');
+                    rmodal.classList.remove('hidden');
+                    setTimeout(() => rmodal.querySelector('div').classList.remove('scale-95'), 10);
+                }, 800);
+            } catch(err) {
+                console.error("Falha ao gerar o HTML:", err);
+                alert("Houve um problema ao salvar. Tente novamente.");
+            }
+        }
+
+        function saveDraftVersion() {
+            try {
+                const htmlClone = document.documentElement.cloneNode(true);
+                bakeImages(htmlClone); // Chamada movida para o início também no rascunho
+                
+                const originalInputs = document.querySelectorAll('input, select');
+                const clonedInputs = htmlClone.querySelectorAll('input, select');
+                originalInputs.forEach((orig, index) => {
+                    let clone = clonedInputs[index];
+                    if (!clone) return;
+                    
+                    if (orig.type === 'checkbox') {
+                        if (orig.checked) clone.setAttribute('checked', 'checked');
+                        else clone.removeAttribute('checked');
+                    } else if (orig.tagName === 'SELECT') {
+                        Array.from(clone.options).forEach(opt => {
+                            if(opt.value === orig.value) opt.setAttribute('selected', 'selected');
+                            else opt.removeAttribute('selected');
+                        });
+                        clone.setAttribute('value', orig.value);
+                    } else {
+                        clone.setAttribute('value', orig.value);
+                    }
+                });
+
+                const modal = htmlClone.querySelector('#reset-modal');
+                if(modal) modal.classList.add('hidden');
+                
+                const htmlString = "<!DOCTYPE html>\n" + htmlClone.outerHTML;
+                const blob = new Blob([htmlString], { type: 'text/html;charset=utf-8' });
+                const url = window.URL.createObjectURL(blob);
+                
+                let proposalId = "Rascunho_Editavel_Tract";
+                try {
+                    const idField = document.getElementById('v-razao-capa');
+                    if(idField && idField.value) {
+                        proposalId += "_" + idField.value.replace(/[^a-zA-Z0-9-]/g, '');
+                    }
+                } catch(e) {}
+
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = proposalId + '.html';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            } catch(err) {
+                console.error("Falha ao gerar o Rascunho:", err);
+            }
+        }
+
+        function handleResetChoice(action) {
+            document.getElementById('reset-modal').classList.add('hidden');
+            if(action === 'keep') {
+                document.getElementById('btn-reset').classList.remove('hidden');
+            } else if(action === 'draft_clear') {
+                saveDraftVersion();
+                setTimeout(() => triggerReset(), 1000);
+            } else if(action === 'clear') {
+                triggerReset();
+            }
+        }
+
+        function triggerReset() {
+            editables.forEach(el => {
+                if (el.tagName === 'INPUT' || el.tagName === 'SELECT') {
+                    el.value = '';
+                    el.removeAttribute('value');
+                } else {
+                    el.textContent = '';
+                }
+                el.dataset.completed = "false";
+                el.classList.remove('ring-2', 'ring-tract-blue', 'scale-110', '!border-emerald-500', '!text-emerald-500', '!bg-emerald-500/10');
+            });
+            document.querySelectorAll('.editable-checkbox').forEach(cb => {
+                cb.checked = false;
+                cb.removeAttribute('checked');
+            });
+            updateFlow();
+            document.getElementById('btn-reset').classList.add('hidden');
+            window.scrollTo({top: 0, behavior: 'smooth'});
+            setTimeout(() => editables[0].focus(), 500);
+        }
+    </script>
+</body>
+</html>
